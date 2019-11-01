@@ -71,7 +71,7 @@ function editPath(s::String, t::String, verbose = false)
     j = n
     path = []
     tiles = []
-    append!(tiles, [(i,j)])
+    append!(tiles, [(i, j)])
     while(!(i == 1 && j == 1))
         
         di, dj = bestDir(d, i, j)
@@ -99,50 +99,61 @@ function editPath(s::String, t::String, verbose = false)
         i += di
         j += dj
         append!(path, [copy(working)])
-        append!(tiles, [(i,j)])
+        append!(tiles, [(i, j)])
     end
     return path, tiles
 end
 
-function visualize(s::String, t::String)
+function draw_path(s::String, t::String)
     d = DistanceMatrix(s, t)
     #d = transpose(d)
     path, route = editPath(s, t)
     #t = Table(size(d))
     s1, s2 = size(d)
-    tiles = Tiler(500, 500, size(d)[1] + 1, size(d)[2] + 1, margin = 20)
-    println(route)
-    @png begin
-        fontsize(24)
-        println(size(d))
-        for (pos, n) in tiles
-            i = tiles.currentrow
-            j = tiles.currentcol
-            w = tiles.tilewidth
-            h = tiles.tileheight
-        # pos is the center of the tile
-            println(n)
-            println("$i , $j")
-            if (i == 1 && j ==1)
-                sethue("black")
-                box(pos, w, h, :stroke)
-            elseif (i == 1)
-                sethue("black")
-                box(pos, w, h, :stroke)
-                text(string(t[j - 1]), pos)
-            elseif (j == 1)
-                sethue("black")
-                box(pos, w, h, :stroke)
-                text(string(s[Int(round(n / s1))]), pos)
-            elseif ((i,j) in route)
-                sethue("blue")
-                box(pos, w, h, :stroke)
-                text(string(d[i - 1,j - 1]), pos)
-            else
-                sethue("black")
-                box(pos, w, h, :stroke)
-                text(string(d[i - 1,j - 1]), pos)
-            end
+    nrows = size(d)[1] + 1
+    ncols = size(d)[2] + 1
+    tiles = Tiler(nrows * 100, ncols * 100, nrows, ncols, margin = 5)
+    tp = []
+    Drawing(nrows * 100, ncols * 100)
+    origin()
+    background("white")
+    fontsize(24)
+    for (pos, n) in tiles
+        i = tiles.currentrow
+        j = tiles.currentcol
+        w = tiles.tilewidth
+        h = tiles.tileheight
+    # pos is the center of the tile
+        if ((i == 1 && j == 1) || (i == 1 && j == 2) || (i == 2 && j == 1))
+            sethue("black")
+            box(pos, w, h, :stroke)
+        elseif (i == 1)
+            sethue("black")
+            box(pos, w, h, :stroke)
+            textcentered(string(t[j - 2]), pos)
+        elseif (j == 1)
+            sethue("black")
+            box(pos, w, h, :stroke)
+            textcentered(string(s[i - 2]), pos)
+        elseif ((i - 1, j - 1) in route)
+            append!(tp, n)
+            sethue("black")
+            box(pos, w, h, :stroke)
+            sethue("red")
+            ellipse(pos, w - 5, h - 5, :stroke)
+            textcentered(string(d[i - 1,j - 1]), pos)
+        else
+            sethue("black")
+            box(pos, w, h, :stroke)
+            textcentered(string(d[i - 1,j - 1]), pos)
         end
     end
+    prev = tiles[tp[1]][1]
+    for p = 2:length(tp)
+        current = tiles[tp[p]][1]
+        line(prev, current, :stroke)
+        prev = current
+    end
+    finish()
+    preview()
 end
