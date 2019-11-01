@@ -9,22 +9,19 @@ function DistanceMatrix(s::String, t::String)
     # for all i and j, d[i,j] will hold the Levenshtein distance between
     # the first i characters of s and the first j characters of t
     # note that d has (m+1)*(n+1) values
-    d = zeros(m + 1, n + 1)
-   
     #set each element in d to zero
-   
+    d = zeros(m + 1, n + 1)
     # source prefixes can be transformed into empty string by
     # dropping all characters
     for i = 0:m
         d[i + 1, 1] = i
     end
-   
     # target prefixes can be reached from empty source prefix
     # by inserting every character
     for j = 0:n
         d[1, j + 1] = j
     end
-   
+   # Fill in distance matrix
     for j = 2:n + 1
         for i = 2:m + 1
             if s[i - 1] == t[j - 1]
@@ -32,7 +29,6 @@ function DistanceMatrix(s::String, t::String)
             else
                 substitutionCost = 1
             end
-            
             #=
             d[i, j] := minimum(d[i-1, j] + 1,                   // deletion -> 0
                                d[i, j-1] + 1,                   // insertion -> 1
@@ -44,10 +40,12 @@ function DistanceMatrix(s::String, t::String)
     return d
 end
 
+# Finds Levenshtein Edit Distance between two strings
 function LevenshteinDistance(s::String, t::String)
     return DistanceMatrix(s, t)[length(s) + 1,length(t) + 1]
 end
 
+# Used within editPath to backtrace path from complete distance matrix 
 function bestDir(d, i, j)
     best = min(d[i - 1, j], d[i, j - 1], d[i - 1, j - 1])
     if (best == d[i - 1, j])
@@ -63,6 +61,7 @@ function bestDir(d, i, j)
     return di, dj
 end
 
+# Returns list of edits between two words and the cell indexes of the path
 function editPath(s::String, t::String, verbose = false)
     d = DistanceMatrix(s, t)
     working = collect(s)
@@ -104,6 +103,7 @@ function editPath(s::String, t::String, verbose = false)
     return path, tiles
 end
 
+# Draws the path in a table and outputs a PNG file
 function draw_path(s::String, t::String)
     d = DistanceMatrix(s, t)
     #d = transpose(d)
