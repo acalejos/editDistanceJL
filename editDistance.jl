@@ -71,7 +71,7 @@ function editPath(s::String, t::String, verbose = false)
     j = n
     path = []
     tiles = []
-    append!(tiles, [i * j])
+    append!(tiles, [(i,j)])
     while(!(i == 1 && j == 1))
         
         di, dj = bestDir(d, i, j)
@@ -99,45 +99,48 @@ function editPath(s::String, t::String, verbose = false)
         i += di
         j += dj
         append!(path, [copy(working)])
-        append!(tiles, [i * j])
+        append!(tiles, [(i,j)])
     end
     return path, tiles
 end
 
 function visualize(s::String, t::String)
     d = DistanceMatrix(s, t)
+    #d = transpose(d)
     path, route = editPath(s, t)
     #t = Table(size(d))
     s1, s2 = size(d)
     tiles = Tiler(500, 500, size(d)[1] + 1, size(d)[2] + 1, margin = 20)
     println(route)
-    fontsize(24)
     @png begin
+        fontsize(24)
         println(size(d))
         for (pos, n) in tiles
             i = tiles.currentrow
             j = tiles.currentcol
+            w = tiles.tilewidth
+            h = tiles.tileheight
         # pos is the center of the tile
             println(n)
             println("$i , $j")
-            if (n == 1)
+            if (i == 1 && j ==1)
                 sethue("black")
-                box(pos, tiles.tilewidth, tiles.tileheight, :stroke)
-            elseif (n <= s2 + 1 && n > 1)
+                box(pos, w, h, :stroke)
+            elseif (i == 1)
                 sethue("black")
-                box(pos, tiles.tilewidth, tiles.tileheight, :stroke)
-                text(string(t[n - 1]), pos)
-            elseif (n % (s2 + 1) == 1)
+                box(pos, w, h, :stroke)
+                text(string(t[j - 1]), pos)
+            elseif (j == 1)
                 sethue("black")
-                box(pos, tiles.tilewidth, tiles.tileheight, :stroke)
+                box(pos, w, h, :stroke)
                 text(string(s[Int(round(n / s1))]), pos)
-            elseif (n in route)
+            elseif ((i,j) in route)
                 sethue("blue")
-                box(pos, tiles.tilewidth, tiles.tileheight, :stroke)
+                box(pos, w, h, :stroke)
                 text(string(d[i - 1,j - 1]), pos)
             else
                 sethue("black")
-                box(pos, tiles.tilewidth, tiles.tileheight, :stroke)
+                box(pos, w, h, :stroke)
                 text(string(d[i - 1,j - 1]), pos)
             end
         end
